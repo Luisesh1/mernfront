@@ -14,7 +14,7 @@ const validationSchema = Yup.object({
 });
 
 const CreateCategory = () => {
-  const { user } = useAuth();
+  
   const [successMessage, setSuccessMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
 

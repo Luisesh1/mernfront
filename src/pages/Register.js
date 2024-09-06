@@ -1,7 +1,7 @@
 import React from 'react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
-import { Avatar, Button, CssBaseline, TextField, Link, Grid, Box, Typography, Container } from '@mui/material';
+import { Avatar, Button, CssBaseline, TextField, Link, Grid, Box, Typography, Container, MenuItem, Select, FormControl, InputLabel, FormHelperText } from '@mui/material';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import api from '../api';
@@ -12,6 +12,7 @@ const validationSchema = Yup.object({
   username: Yup.string().required('Required'),
   email: Yup.string().email('Invalid email').required('Required'),
   password: Yup.string().min(6, 'Password should be of minimum 6 characters length').required('Required'),
+  role: Yup.string().oneOf(['organizer', 'participant'], 'Invalid role').required('Required'),
 });
 
 const Register = () => {
@@ -20,6 +21,7 @@ const Register = () => {
       username: '',
       email: '',
       password: '',
+      role: 'participant', // Valor por defecto
     },
     validationSchema: validationSchema,
     onSubmit: async (values) => {
@@ -92,6 +94,21 @@ const Register = () => {
               error={formik.touched.password && Boolean(formik.errors.password)}
               helperText={formik.touched.password && formik.errors.password}
             />
+            <FormControl fullWidth margin="normal" error={formik.touched.role && Boolean(formik.errors.role)}>
+              <InputLabel id="role-label">Role</InputLabel>
+              <Select
+                labelId="role-label"
+                id="role"
+                name="role"
+                value={formik.values.role}
+                onChange={formik.handleChange}
+                label="Role"
+              >
+                <MenuItem value="participant">Participant</MenuItem>
+                <MenuItem value="organizer">Organizer</MenuItem>
+              </Select>
+              <FormHelperText>{formik.touched.role && formik.errors.role}</FormHelperText>
+            </FormControl>
             <Button
               type="submit"
               fullWidth

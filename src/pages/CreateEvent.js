@@ -26,6 +26,10 @@ const CreateEvent = () => {
   const [categories, setCategories] = useState([]);
   const [successMessage, setSuccessMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
+  const [logo, setLogo] = useState(null);
+  const [cover, setCover] = useState(null);
+  const [logoPreview, setLogoPreview] = useState('');
+  const [coverPreview, setCoverPreview] = useState('');
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -58,6 +62,8 @@ const CreateEvent = () => {
             time: event.time,
             location: event.location,
           });
+          setLogoPreview(`${process.env.REACT_APP_BASE_URL}/${event.logo}`);
+          setCoverPreview(`${process.env.REACT_APP_BASE_URL}/${event.cover}`);
         } catch (error) {
           console.error('Failed to fetch event', error);
         }
@@ -79,18 +85,30 @@ const CreateEvent = () => {
     },
     validationSchema: validationSchema,
     onSubmit: async (values, { resetForm }) => {
+      const formData = new FormData();
+      formData.append('title', values.title);
+      formData.append('description', values.description);
+      formData.append('category', values.category);
+      formData.append('date', values.date);
+      formData.append('time', values.time);
+      formData.append('location', values.location);
+      if (logo) formData.append('logo', logo);
+      if (cover) formData.append('cover', cover);
+
       try {
         if (id) {
-          await api.put(`/events/${id}`, values, {
+          await api.put(`/events/${id}`, formData, {
             headers: {
               Authorization: `Bearer ${localStorage.getItem('token')}`,
+              'Content-Type': 'multipart/form-data',
             },
           });
           setSuccessMessage('Event updated successfully');
         } else {
-          await api.post('/events', values, {
+          await api.post('/events', formData, {
             headers: {
               Authorization: `Bearer ${localStorage.getItem('token')}`,
+              'Content-Type': 'multipart/form-data',
             },
           });
           setSuccessMessage('Event created successfully');
@@ -104,6 +122,20 @@ const CreateEvent = () => {
       }
     },
   });
+
+  const handleLogoChange = (e) => {
+    if (e.target.files[0]) {
+      setLogo(e.target.files[0]);
+      setLogoPreview(URL.createObjectURL(e.target.files[0]));
+    }
+  };
+
+  const handleCoverChange = (e) => {
+    if (e.target.files[0]) {
+      setCover(e.target.files[0]);
+      setCoverPreview(URL.createObjectURL(e.target.files[0]));
+    }
+  };
 
   return (
     <ThemeProvider theme={theme}>
@@ -217,6 +249,36 @@ const CreateEvent = () => {
               error={formik.touched.location && Boolean(formik.errors.location)}
               helperText={formik.touched.location && formik.errors.location}
             />
+            <Box sx={{ mt: 2 }}>
+              <input
+                accept="image/*"
+                style={{ display: 'none' }}
+                id="logo-upload"
+                type="file"
+                onChange={handleLogoChange}
+              />
+              <label htmlFor="logo-upload">
+                <Button variant="contained" component="span" fullWidth sx={{ mt: 1 }}>
+                  Upload Logo
+                </Button>
+              </label>
+              {logoPreview && <img src={logoPreview} alt="Logo Preview" style={{ width: '100%', marginTop: '10px' }} />}
+            </Box>
+            <Box sx={{ mt: 2 }}>
+              <input
+                accept="image/*"
+                style={{ display: 'none' }}
+                id="cover-upload"
+                type="file"
+                onChange={handleCoverChange}
+              />
+              <label htmlFor="cover-upload">
+                <Button variant="contained" component="span" fullWidth sx={{ mt: 1 }}>
+                  Upload Cover
+                </Button>
+              </label>
+              {coverPreview && <img src={coverPreview} alt="Cover Preview" style={{ width: '100%', marginTop: '10px' }} />}
+            </Box>
             <Button
               type="submit"
               fullWidth
