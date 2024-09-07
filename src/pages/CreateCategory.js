@@ -1,11 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
-import { Avatar, Button, CssBaseline, TextField, Box, Typography, Container, Alert } from '@mui/material';
+import { Avatar, Button, CssBaseline, TextField, Box, Typography, Container, Alert, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, CircularProgress } from '@mui/material';
 import CategoryIcon from '@mui/icons-material/Category';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import api from '../api';
-import { useAuth } from '../context/AuthContext';
 
 const theme = createTheme();
 
@@ -14,9 +13,31 @@ const validationSchema = Yup.object({
 });
 
 const CreateCategory = () => {
-  
   const [successMessage, setSuccessMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // Función para obtener las categorías desde el backend
+  const fetchCategories = async () => {
+    try {
+      setLoading(true);
+      const response = await api.get('/events/categories', {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+      });
+      setCategories(response.data);
+    } catch (error) {
+      console.error('Failed to fetch categories:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchCategories();
+  }, []);
 
   const formik = useFormik({
     initialValues: {
@@ -33,6 +54,7 @@ const CreateCategory = () => {
         setSuccessMessage('Category created successfully');
         setErrorMessage('');
         resetForm();
+        fetchCategories(); // Actualiza la lista de categorías después de crear una nueva
       } catch (error) {
         setErrorMessage(error.response?.data?.message || 'Failed to create category');
         setSuccessMessage('');
@@ -42,7 +64,7 @@ const CreateCategory = () => {
 
   return (
     <ThemeProvider theme={theme}>
-      <Container component="main" maxWidth="xs">
+      <Container component="main" maxWidth="md">
         <CssBaseline />
         <Box
           sx={{
@@ -52,6 +74,9 @@ const CreateCategory = () => {
             alignItems: 'center',
           }}
         >
+          <Typography variant="h4" gutterBottom sx={{ textAlign: 'center', mb: 4 }}>
+            Categories
+          </Typography>
           <Avatar sx={{ m: 1, bgcolor: 'secondary.main' }}>
             <CategoryIcon />
           </Avatar>
@@ -85,6 +110,32 @@ const CreateCategory = () => {
             </Button>
           </Box>
         </Box>
+        <Paper elevation={3} sx={{ p: 2, mb: 4, width: '100%' }}>
+            {loading ? (
+              <Box display="flex" justifyContent="center" alignItems="center" sx={{ height: 200 }}>
+                <CircularProgress />
+              </Box>
+            ) : (
+              <TableContainer>
+                <Table>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>ID</TableCell>
+                      <TableCell>Category Name</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {categories.map((category) => (
+                      <TableRow key={category._id}>
+                        <TableCell>{category._id}</TableCell>
+                        <TableCell>{category.name}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            )}
+          </Paper>
       </Container>
     </ThemeProvider>
   );

@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
-import { Avatar, Button, CssBaseline, TextField, FormControlLabel, Checkbox, Link, Grid, Box, Typography, Container } from '@mui/material';
+import { Avatar, Button, CssBaseline, TextField, FormControlLabel, Checkbox, Link, Grid, Box, Typography, Container, Alert } from '@mui/material';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import api from '../api';
@@ -16,6 +16,7 @@ const validationSchema = Yup.object({
 
 const Login = () => {
   const { login } = useAuth();
+  const [errorMessage, setErrorMessage] = useState('');
 
   const formik = useFormik({
     initialValues: {
@@ -27,9 +28,9 @@ const Login = () => {
       try {
         const response = await api.post('/users/login', values);
         login({ token: response.data.token, user: response.data.user });
-        window.location.href = '/';
+        setErrorMessage('');
       } catch (error) {
-        console.error('Failed to login', error);
+        setErrorMessage(error.response?.data?.message || 'Failed to login');
       }
     },
   });
@@ -52,6 +53,8 @@ const Login = () => {
           <Typography component="h1" variant="h5">
             Sign in
           </Typography>
+          {/* Mostrar mensaje de error si existe */}
+          {errorMessage && <Alert severity="error" sx={{ mt: 2 }}>{errorMessage}</Alert>}
           <Box component="form" onSubmit={formik.handleSubmit} noValidate sx={{ mt: 1 }}>
             <TextField
               margin="normal"

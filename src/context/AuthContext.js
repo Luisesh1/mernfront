@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { jwtDecode } from 'jwt-decode';
+import { jwtDecode } from 'jwt-decode'; // Ajuste menor: asegúrate de que jwtDecode esté importado correctamente
 
 const AuthContext = createContext();
 
@@ -10,6 +10,7 @@ export const useAuth = () => {
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
+  const [isLoading, setIsLoading] = useState(true); // Estado para manejar la carga de la autenticación
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -31,6 +32,7 @@ export const AuthProvider = ({ children }) => {
           setUser(null);
         }
       }
+      setIsLoading(false); // Marcar como completado la carga de autenticación
     };
 
     checkAuth();
@@ -49,7 +51,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout }}>
+    <AuthContext.Provider value={{ user, isLoading, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
